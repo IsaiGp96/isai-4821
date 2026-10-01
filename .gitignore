@@ -1,0 +1,7 @@
+# Dependencias y compilados.
+node_modules/
+dist/
+
+# Variables de entorno.
+.env
+.env.*
