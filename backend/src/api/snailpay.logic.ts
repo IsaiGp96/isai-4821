@@ -11,6 +11,8 @@ export const TEST_CARDS = {
   approved: { card_number: '1234123412341234', expiration_date: '12/26', cvv: '543' },
   insufficientFunds: '4000000000009995',
   systemError: '9999999999999999',
+  // Responde con retraso para que el frontend corte la petición por timeout.
+  timeout: '4000000000000408',
 } as const;
 
 export const MAX_AMOUNT = 10_000;
@@ -38,7 +40,10 @@ interface ChargeOptions {
 export function processCharge(input: unknown, options: ChargeOptions = {}): ChargeResponse {
   const request = toChargeRequest(input);
 
-  if (options.systemFailure || request.card_number === TEST_CARDS.systemError) {
+  // La tarjeta de timeout responde con error: si la respuesta tardía llegara, no debe aprobar nada.
+  const isSystemErrorCard =
+    request.card_number === TEST_CARDS.systemError || request.card_number === TEST_CARDS.timeout;
+  if (options.systemFailure || isSystemErrorCard) {
     return buildResponse(request, 'error', 'service_unavailable');
   }
 
