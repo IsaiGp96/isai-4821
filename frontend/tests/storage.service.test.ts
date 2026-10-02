@@ -40,9 +40,23 @@ afterEach(() => {
 })
 
 describe('storageService - guardar y leer', () => {
-  it('guarda y recupera el usuario', () => {
+  it('agrega usuarios a la lista conservando los anteriores', () => {
+    const second = { ...user, id: 'user-2', email: 'luis@correo.com' }
+
     expect(storageService.saveUser(user)).toBe(true)
-    expect(storageService.getUser()).toEqual(user)
+    expect(storageService.saveUser(second)).toBe(true)
+
+    expect(storageService.getUsers()).toEqual([user, second])
+  })
+
+  it('actualiza al usuario con el mismo id sin duplicarlo', () => {
+    const second = { ...user, id: 'user-2', email: 'luis@correo.com' }
+    storageService.saveUser(user)
+    storageService.saveUser(second)
+
+    storageService.saveUser({ ...user, balance: 500 })
+
+    expect(storageService.getUsers()).toEqual([{ ...user, balance: 500 }, second])
   })
 
   it('guarda, recupera y borra la sesión', () => {
@@ -71,8 +85,11 @@ describe('storageService - guardar y leer', () => {
 })
 
 describe('storageService - datos inexistentes', () => {
-  it('devuelve null sin usuario ni sesión guardados', () => {
-    expect(storageService.getUser()).toBeNull()
+  it('devuelve una lista vacía sin usuarios guardados', () => {
+    expect(storageService.getUsers()).toEqual([])
+  })
+
+  it('devuelve null sin sesión guardada', () => {
     expect(storageService.getSession()).toBeNull()
   })
 
@@ -83,20 +100,26 @@ describe('storageService - datos inexistentes', () => {
 
 describe('storageService - datos corruptos', () => {
   it('ignora JSON inválido', () => {
-    localStorage.setItem(STORAGE_KEYS.user, '{"id": ')
+    localStorage.setItem(STORAGE_KEYS.users, '[{"id": ')
 
-    expect(storageService.getUser()).toBeNull()
+    expect(storageService.getUsers()).toEqual([])
   })
 
   it.each([
     ['sin contraseña derivada', { ...user, passwordHash: undefined }],
     ['saldo negativo', { ...user, balance: -100 }],
     ['saldo como texto', { ...user, balance: '100' }],
-    ['un arreglo', [user]],
-  ])('rechaza un usuario con %s', (_case, stored) => {
-    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(stored))
+  ])('descarta toda la lista si un usuario tiene %s', (_case, corrupt) => {
+    const valid = { ...user, id: 'user-2' }
+    localStorage.setItem(STORAGE_KEYS.users, JSON.stringify([valid, corrupt]))
 
-    expect(storageService.getUser()).toBeNull()
+    expect(storageService.getUsers()).toEqual([])
+  })
+
+  it('rechaza un usuario guardado fuera de una lista', () => {
+    localStorage.setItem(STORAGE_KEYS.users, JSON.stringify(user))
+
+    expect(storageService.getUsers()).toEqual([])
   })
 
   it('rechaza una sesión sin usuario', () => {
@@ -122,11 +145,12 @@ describe('storageService - errores del navegador', () => {
     expect(storageService.saveUser(user)).toBe(false)
   })
 
-  it('devuelve null si el navegador bloquea la lectura', () => {
+  it('devuelve datos vacíos si el navegador bloquea la lectura', () => {
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new DOMException('Bloqueado', 'SecurityError')
     })
 
-    expect(storageService.getUser()).toBeNull()
+    expect(storageService.getUsers()).toEqual([])
+    expect(storageService.getSession()).toBeNull()
   })
 })

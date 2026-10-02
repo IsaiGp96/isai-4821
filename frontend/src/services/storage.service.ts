@@ -52,6 +52,10 @@ function isUser(value: unknown): value is User {
   )
 }
 
+function isUserList(value: unknown): value is User[] {
+  return Array.isArray(value) && value.every(isUser)
+}
+
 function isSession(value: unknown): value is Session {
   return (
     isRecord(value) &&
@@ -80,8 +84,16 @@ function isRechargeList(value: unknown): value is Recharge[] {
 }
 
 export const storageService = {
-  getUser: () => read(STORAGE_KEYS.user, isUser),
-  saveUser: (user: User) => write(STORAGE_KEYS.user, user),
+  getUsers: () => read(STORAGE_KEYS.users, isUserList) ?? [],
+  // Reemplaza al usuario con el mismo id (p. ej. al actualizar su saldo) o lo agrega al final.
+  saveUser: (user: User) => {
+    const users = storageService.getUsers()
+    const exists = users.some((stored) => stored.id === user.id)
+    const next = exists
+      ? users.map((stored) => (stored.id === user.id ? user : stored))
+      : [...users, user]
+    return write(STORAGE_KEYS.users, next)
+  },
 
   getSession: () => read(STORAGE_KEYS.session, isSession),
   saveSession: (session: Session) => write(STORAGE_KEYS.session, session),
