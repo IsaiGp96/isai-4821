@@ -2,7 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { authService } from '../src/services/auth.service'
 import { storageService } from '../src/services/storage.service'
 
-const input = { fullName: 'Ana López', email: 'ana@correo.com', password: 'Caracol123' }
+const input = {
+  fullName: 'Ana López',
+  email: 'ana@correo.com',
+  password: 'Caracol123',
+  confirmPassword: 'Caracol123',
+}
 
 beforeEach(() => {
   localStorage.clear()
@@ -61,6 +66,8 @@ describe('authService - registro', () => {
     ['correo sin dominio', { email: 'ana@' }, 'Ingresa un correo válido.'],
     ['correo con espacios', { email: 'ana lopez@correo.com' }, 'Ingresa un correo válido.'],
     ['contraseña corta', { password: '1234567' }, 'La contraseña debe tener al menos 8 caracteres.'],
+    ['confirmación distinta', { confirmPassword: 'Caracol124' }, 'Las contraseñas no coinciden.'],
+    ['confirmación vacía', { confirmPassword: '' }, 'Las contraseñas no coinciden.'],
   ])('rechaza %s', async (_case, change, error) => {
     const result = await authService.register({ ...input, ...change })
 

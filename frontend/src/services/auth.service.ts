@@ -20,12 +20,13 @@ function findByEmail(email: string): User | undefined {
   return storageService.getUsers().find((user) => user.email === email)
 }
 
-function validateRegister({ fullName, email, password }: RegisterInput): string | null {
+function validateRegister({ fullName, email, password, confirmPassword }: RegisterInput): string | null {
   if (fullName.trim() === '') return 'Ingresa tu nombre completo.'
   if (!EMAIL_PATTERN.test(email)) return 'Ingresa un correo válido.'
   if (password.length < MIN_PASSWORD_LENGTH) {
     return `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`
   }
+  if (password !== confirmPassword) return 'Las contraseñas no coinciden.'
   return null
 }
 

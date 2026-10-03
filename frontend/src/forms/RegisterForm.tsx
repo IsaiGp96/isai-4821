@@ -12,6 +12,7 @@ export function RegisterForm() {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -19,7 +20,7 @@ export function RegisterForm() {
     event.preventDefault()
     setError(null)
     setSubmitting(true)
-    const result = await authService.register({ fullName, email, password })
+    const result = await authService.register({ fullName, email, password, confirmPassword })
     setSubmitting(false)
 
     if (!result.ok) return setError(result.error)
@@ -61,6 +62,16 @@ export function RegisterForm() {
         <p id="password-hint" className="text-xs text-muted-foreground">
           Mínimo 8 caracteres.
         </p>
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+        <Input
+          id="confirmPassword"
+          type="password"
+          autoComplete="new-password"
+          value={confirmPassword}
+          onChange={(event) => setConfirmPassword(event.target.value)}
+        />
       </div>
       <FormError message={error} />
       <Button type="submit" disabled={submitting}>

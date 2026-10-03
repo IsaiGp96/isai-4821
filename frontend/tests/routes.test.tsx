@@ -63,6 +63,7 @@ describe('rutas - con sesión', () => {
       fullName: 'Ana López',
       email: 'ana@correo.com',
       password: 'Caracol123',
+      confirmPassword: 'Caracol123',
     })
   })
 
