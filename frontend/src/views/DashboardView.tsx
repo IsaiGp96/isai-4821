@@ -1,15 +1,20 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { BetsDonutChart } from '../components/BetsDonutChart'
 import { RaceWinsBarChart } from '../components/RaceWinsBarChart'
+import { RechargeDialog } from '../components/RechargeDialog'
 import { Button } from '../components/ui/button'
 import { ROUTES } from '../config/routes'
 import { authService } from '../services/auth.service'
 import { raceService } from '../services/race.service'
 
-// Vista provisional: el saldo y la recarga llegan en los siguientes commits.
+const currency = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })
+
+// Vista provisional: el diseño final del dashboard llega en el siguiente commit.
 export function DashboardView() {
   const navigate = useNavigate()
-  const user = authService.getCurrentUser()
+  // El usuario vive en el estado: al aprobarse una recarga, el saldo se actualiza sin recargar la página.
+  const [user, setUser] = useState(() => authService.getCurrentUser())
   const day = user ? raceService.simulateDay(user.id) : null
 
   function handleLogout() {
@@ -25,6 +30,14 @@ export function DashboardView() {
           Cerrar sesión
         </Button>
       </div>
+      {user && (
+        <div className="flex items-center justify-between">
+          <p>
+            Saldo: <span className="font-semibold">{currency.format(user.balance)}</span>
+          </p>
+          <RechargeDialog user={user} onRecharged={setUser} />
+        </div>
+      )}
       {day && (
         <div className="grid gap-4 md:grid-cols-2">
           <BetsDonutChart bets={day.bets} />
