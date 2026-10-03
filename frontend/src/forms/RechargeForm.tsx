@@ -4,12 +4,15 @@ import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
 import { SNAILPAY_MAX_AMOUNT } from '../config/api'
+import { formatCurrency } from '../lib/format'
 import { rechargeService } from '../services/recharge.service'
 import type { User } from '../types/user.types'
 
 interface RechargeFormProps {
   user: User
   onApproved: (user: User, message: string) => void
+  // Se llama después de cada intento, aprobado o no: el historial guarda todas las respuestas.
+  onSettled: () => void
 }
 
 // Agrupa de 4 en 4 para que el número se lea como en la tarjeta: 1234 1234 1234 1234.
@@ -23,9 +26,7 @@ function formatExpiration(value: string): string {
   return digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits
 }
 
-const currency = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })
-
-export function RechargeForm({ user, onApproved }: RechargeFormProps) {
+export function RechargeForm({ user, onApproved, onSettled }: RechargeFormProps) {
   const [cardNumber, setCardNumber] = useState('')
   const [expirationDate, setExpirationDate] = useState('')
   const [cvv, setCvv] = useState('')
@@ -47,6 +48,7 @@ export function RechargeForm({ user, onApproved }: RechargeFormProps) {
       amount: amount.trim() === '' ? Number.NaN : Number(amount),
     })
     setSubmitting(false)
+    onSettled()
 
     if (!outcome.ok) return setError(outcome.message)
     onApproved(outcome.user, outcome.message)
@@ -112,7 +114,7 @@ export function RechargeForm({ user, onApproved }: RechargeFormProps) {
           onChange={(event) => setAmount(event.target.value)}
         />
         <p id="amount-hint" className="text-xs text-muted-foreground">
-          Máximo {currency.format(SNAILPAY_MAX_AMOUNT)} por recarga.
+          Máximo {formatCurrency(SNAILPAY_MAX_AMOUNT)} por recarga.
         </p>
       </div>
       <FormError message={error} />

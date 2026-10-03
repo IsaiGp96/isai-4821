@@ -17,9 +17,10 @@ import {
 interface RechargeDialogProps {
   user: User
   onRecharged: (user: User) => void
+  onSettled: () => void
 }
 
-export function RechargeDialog({ user, onRecharged }: RechargeDialogProps) {
+export function RechargeDialog({ user, onRecharged, onSettled }: RechargeDialogProps) {
   const [open, setOpen] = useState(false)
   const [approvedMessage, setApprovedMessage] = useState<string | null>(null)
 
@@ -60,7 +61,7 @@ export function RechargeDialog({ user, onRecharged }: RechargeDialogProps) {
             </DialogFooter>
           </>
         ) : (
-          <RechargeForm user={user} onApproved={handleApproved} />
+          <RechargeForm user={user} onApproved={handleApproved} onSettled={onSettled} />
         )}
       </DialogContent>
     </Dialog>
