@@ -1,4 +1,5 @@
 import { STORAGE_KEYS, type StorageKey } from '../config/storage'
+import { isChargeResponse, isRecord } from '../lib/guards'
 import type { Session } from '../types/session.types'
 import type { Recharge } from '../types/snailpay.types'
 import type { User } from '../types/user.types'
@@ -34,10 +35,6 @@ function remove(key: StorageKey): void {
   }
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
 function isUser(value: unknown): value is User {
   return (
     isRecord(value) &&
@@ -64,23 +61,8 @@ function isSession(value: unknown): value is Session {
   )
 }
 
-function isRecharge(value: unknown): value is Recharge {
-  return (
-    isRecord(value) &&
-    typeof value.id === 'string' &&
-    typeof value.status === 'string' &&
-    typeof value.status_detail === 'string' &&
-    typeof value.transaction_amount === 'number' &&
-    typeof value.date_created === 'string' &&
-    typeof value.reference === 'string' &&
-    typeof value.payer_id === 'string' &&
-    typeof value.card_number === 'string' &&
-    typeof value.cvv === 'string'
-  )
-}
-
 function isRechargeList(value: unknown): value is Recharge[] {
-  return Array.isArray(value) && value.every(isRecharge)
+  return Array.isArray(value) && value.every(isChargeResponse)
 }
 
 export const storageService = {
