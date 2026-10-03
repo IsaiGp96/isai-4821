@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
-import { createApp } from '../src/app.js';
+import vercelApp, { createApp } from '../src/app.js';
 import { TEST_CARDS } from '../src/api/snailpay.logic.js';
 
 const CHARGES_URL = '/api/snailpay/charges';
@@ -105,5 +105,14 @@ describe('Errores generales de la API', () => {
 
     expect(response.status).toBe(404);
     expect(response.body.error).toBe('not_found');
+  });
+});
+
+describe('Punto de entrada para Vercel', () => {
+  it('exporta por defecto una app de Express lista para responder', async () => {
+    const response = await request(vercelApp).get('/health');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ status: 'ok' });
   });
 });

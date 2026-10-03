@@ -37,3 +37,7 @@ const handleError: ErrorRequestHandler = (error, _req, res, _next) => {
   console.error(error);
   res.status(500).json({ error: 'internal_error', message: 'Ocurrió un error inesperado en el servidor.' });
 };
+
+// Punto de entrada en Vercel: detecta src/app.ts y usa la app exportada por defecto.
+// Va al final porque createApp usa handleError, que se declara arriba.
+export default createApp();
